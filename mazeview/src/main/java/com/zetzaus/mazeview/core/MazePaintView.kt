@@ -329,6 +329,24 @@ class MazePaintView @JvmOverloads constructor(
         return true
     }
 
+    override fun onSaveInstanceState(): Parcelable {
+        return Bundle().apply {
+            putParcelable(PARENT_STATE_KEY, super.onSaveInstanceState())
+
+            // Save maze
+            putString(MAZE_KEY, maze)
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        (state as Bundle?)?.run {
+            maze = getString(MAZE_KEY)!!
+
+            super.onRestoreInstanceState(getParcelable(PARENT_STATE_KEY))
+        }
+    }
+
     companion object {
         const val DEFAULT_SCALE_FACTOR = 0.7f
         const val DEFAULT_BORDER_WIDTH = 4f
@@ -338,5 +356,8 @@ class MazePaintView @JvmOverloads constructor(
         const val DEFAULT_RING_SIZE_MULTIPLIER = 3f
 
         const val DEFAULT_MOVE_ANIMATION_DURATION = 500
+
+        const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
+        const val MAZE_KEY = "MAZE_KEY"
     }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MazePaintView">
+        <attr name="columnCount" format="integer" />
+        <attr name="rowCount" format="integer" />
+        <attr name="entityScale" format="float" />
+        <attr name="encodedMaze" format="string" />
+
+        <attr name="ringWidth" format="float" />
+        <attr name="ringAnimationDurationMs" format="integer" />
+        <attr name="ringSizeMultiplier" format="float" />
+
+        <attr name="moveAnimationDurationMs" format="integer" />
+
+        <attr name="cellBorderWidth" format="float" />
+        <attr name="cellBorderColor" format="color" />
+    </declare-styleable>
+</resources>

@@ -1,11 +1,10 @@
-package com.zetzaus.maze.core
+package com.zetzaus.mazeview.core
 
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
-import com.zetzaus.maze.R
-import com.zetzaus.maze.extension.getDrawableOrThrow
-import com.zetzaus.maze.extension.toScaledBitmap
+import com.zetzaus.mazeview.extension.getDrawableOrThrow
+import com.zetzaus.mazeview.extension.toScaledBitmap
 
 /**
  * Is a cell in the maze.
@@ -45,7 +44,7 @@ sealed class Tile {
          * @return The image.
          */
         fun getBitmap(context: Context, size: Int): Bitmap {
-            return context.getDrawableOrThrow(R.drawable.ic_six).toScaledBitmap(size, size)
+            return context.getDrawableOrThrow(imageId).toScaledBitmap(size, size)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.zetzaus.maze.extension
+package com.zetzaus.mazeview.extension
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable

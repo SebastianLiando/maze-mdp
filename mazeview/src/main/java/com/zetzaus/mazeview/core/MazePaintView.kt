@@ -1,4 +1,4 @@
-package com.zetzaus.maze
+package com.zetzaus.mazeview.core
 
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
@@ -6,15 +6,17 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
-import com.zetzaus.maze.core.Tile
-import com.zetzaus.maze.extension.drawBorderedRect
-import com.zetzaus.maze.extension.getThemeColor
+import com.zetzaus.mazeview.R
+import com.zetzaus.mazeview.extension.drawBorderedRect
 import kotlin.math.min
 
 class MazePaintView @JvmOverloads constructor(
@@ -58,7 +60,7 @@ class MazePaintView @JvmOverloads constructor(
     private val borderPaint = Paint().apply {
         style = Paint.Style.STROKE
         strokeWidth = DEFAULT_BORDER_WIDTH
-        color = context.getThemeColor(R.attr.colorSurface)
+        color = ContextCompat.getColor(context, android.R.color.white)
     }
 
     /** Paint for drawing the robot radar-like animation. */
@@ -103,6 +105,12 @@ class MazePaintView @JvmOverloads constructor(
 
             borderPaint.strokeWidth =
                 getFloat(R.styleable.MazePaintView_cellBorderWidth, DEFAULT_BORDER_WIDTH)
+
+            borderPaint.color =
+                getColor(
+                    R.styleable.MazePaintView_cellBorderColor,
+                    ContextCompat.getColor(context, android.R.color.white)
+                )
 
             robotAnimationPaint.strokeWidth =
                 getFloat(R.styleable.MazePaintView_ringWidth, DEFAULT_RING_WIDTH)

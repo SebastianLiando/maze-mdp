@@ -1,4 +1,4 @@
-package com.zetzaus.maze.extension
+package com.zetzaus.mazeview.extension
 
 import android.content.Context
 import android.util.TypedValue

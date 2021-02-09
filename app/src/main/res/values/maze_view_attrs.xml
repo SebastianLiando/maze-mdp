@@ -5,5 +5,13 @@
         <attr name="rowCount" format="integer" />
         <attr name="entityScale" format="float" />
         <attr name="encodedMaze" format="string" />
+
+        <attr name="ringWidth" format="float" />
+        <attr name="ringAnimationDurationMs" format="integer" />
+        <attr name="ringSizeMultiplier" format="float" />
+
+        <attr name="moveAnimationDurationMs" format="integer" />
+
+        <attr name="cellBorderWidth" format="float" />
     </declare-styleable>
 </resources>

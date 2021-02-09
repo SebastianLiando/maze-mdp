@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MazePaintView">
+        <attr name="columnCount" format="integer" />
+        <attr name="rowCount" format="integer" />
+        <attr name="entityScale" format="float" />
+        <attr name="encodedMaze" format="string" />
+    </declare-styleable>
+</resources>

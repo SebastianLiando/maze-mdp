@@ -76,7 +76,14 @@ class MazePaintView @JvmOverloads constructor(
     private lateinit var currentRobotPos: Pair<Int, Int>
 
     /** Callback for click event. The parameters are the coordinate of the grid that is clicked (X, Y). */
-    var touchUpListener: (x: Int, y: Int) -> Unit = { _, _ -> }
+    private var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
+        set(value) {
+            if (value != null) {
+                isClickable = true
+            }
+
+            field = value
+        }
 
     private var rowCount = 1
     private var columnCount = 1
@@ -95,8 +102,6 @@ class MazePaintView @JvmOverloads constructor(
             ?: throw IllegalArgumentException("The decoder must provide a character that maps to Tile.RobotTile!")
 
     init {
-        isClickable = true
-
         context.withStyledAttributes(attrs, R.styleable.MazePaintView) {
             rowCount = getInteger(R.styleable.MazePaintView_rowCount, 1)
             columnCount = getInteger(R.styleable.MazePaintView_columnCount, 1)
@@ -223,10 +228,10 @@ class MazePaintView @JvmOverloads constructor(
 
         mazeCells = mutableRectangles
 
-        if (!::currentRobotPos.isInitialized) {
-            val robotIndex = maze.indexOf(robotChar)
-            currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
-        }
+        if (::moveAnimator.isInitialized) moveAnimator.cancel()
+
+        val robotIndex = maze.indexOf(robotChar)
+        currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
 
         robotAnimator.cancel()
         robotAnimator.start()
@@ -321,7 +326,7 @@ class MazePaintView @JvmOverloads constructor(
             // Ignore touch that is out of the grid
             if (gridX < 0 || gridX >= columnCount || gridY < 0 || gridY >= rowCount) return false
 
-            touchUpListener(gridX.toInt(), gridY.toInt())
+            touchUpListener?.invoke(gridX.toInt(), gridY.toInt())
 
             return true
         }

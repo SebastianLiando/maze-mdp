@@ -6,9 +6,9 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.zetzaus.mazeview.extension.getThemeColor
 import com.zetzaus.mazeview.core.MazePaintView
 import com.zetzaus.mazeview.core.Tile
+import com.zetzaus.mazeview.extension.getThemeColor
 
 class MainActivity : AppCompatActivity() {
     private val colorSecondary

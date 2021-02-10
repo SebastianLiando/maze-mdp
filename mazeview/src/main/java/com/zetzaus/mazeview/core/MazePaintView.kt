@@ -76,7 +76,7 @@ class MazePaintView @JvmOverloads constructor(
     private lateinit var currentRobotPos: Pair<Int, Int>
 
     /** Callback for click event. The parameters are the coordinate of the grid that is clicked (X, Y). */
-    private var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
+    var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
         set(value) {
             if (value != null) {
                 isClickable = true

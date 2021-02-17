@@ -14,5 +14,7 @@
 
         <attr name="cellBorderWidth" format="float" />
         <attr name="cellBorderColor" format="color" />
+
+        <attr name="robotColor" format="color" />
     </declare-styleable>
 </resources>

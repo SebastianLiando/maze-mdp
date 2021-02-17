@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
@@ -72,16 +73,15 @@ class MazePaintView @JvmOverloads constructor(
     /** The maze cells positions. */
     private lateinit var mazeCells: List<Rect>
 
+    private var robotIndex = 0
+
     /** The current robot position. It is extracted to class property for animation purpose. */
     private lateinit var currentRobotPos: Pair<Int, Int>
 
     /** Callback for click event. The parameters are the coordinate of the grid that is clicked (X, Y). */
     var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
         set(value) {
-            if (value != null) {
-                isClickable = true
-            }
-
+            isClickable = value != null
             field = value
         }
 
@@ -89,17 +89,17 @@ class MazePaintView @JvmOverloads constructor(
     private var columnCount = 1
     private var scaleFactor = DEFAULT_SCALE_FACTOR
     private var moveAnimationDuration = DEFAULT_MOVE_ANIMATION_DURATION
+    private var robotColor = Color.BLACK
 
-    /** The encoded maze. */
-    private var maze: String = ""
+    /** The encoded maze. Setting a new value to this variable will invalidate the maze. */
+    var maze: String = ""
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     /** Decodes a maze character into the tile. Set the decoder first before updating the maze. */
     var decoder: Map<Char, Tile> = mapOf()
-
-    /** The character that represents a robot. This is found in the [decoder]. */
-    private val robotChar
-        get() = decoder.entries.find { it.value is Tile.RobotTile }?.key
-            ?: throw IllegalArgumentException("The decoder must provide a character that maps to Tile.RobotTile!")
 
     init {
         context.withStyledAttributes(attrs, R.styleable.MazePaintView) {
@@ -107,6 +107,8 @@ class MazePaintView @JvmOverloads constructor(
             columnCount = getInteger(R.styleable.MazePaintView_columnCount, 1)
             scaleFactor = getFloat(R.styleable.MazePaintView_entityScale, DEFAULT_SCALE_FACTOR)
             maze = getString(R.styleable.MazePaintView_encodedMaze) ?: ""
+
+            robotColor = getColor(R.styleable.MazePaintView_robotColor, Color.BLACK)
 
             borderPaint.strokeWidth =
                 getFloat(R.styleable.MazePaintView_cellBorderWidth, DEFAULT_BORDER_WIDTH)
@@ -152,25 +154,21 @@ class MazePaintView @JvmOverloads constructor(
     }
 
     /**
-     * Updates the current encoded maze [String]. Calling this function will redraw the maze by
-     * triggering [onDraw].
+     * Updates the robot indicator position in the maze.
      *
-     * @param updatedMaze The updated encoded maze [String].
+     * @param index The index of the String the robot is at.
+     * @param animated `true` to animate the position change.
      */
-    fun updateMaze(updatedMaze: String, animated: Boolean = false) {
-        maze = updatedMaze
+    fun updateRobotPosition(index: Int, animated: Boolean = true) {
+        robotIndex = index
 
         if (!::mazeCells.isInitialized) return
 
-        if (!animated && maze.isNotEmpty()) {
-            val robotIndex = updatedMaze.indexOf(robotChar)
+        if (!animated) {
             currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
-
             invalidate()
         } else {
-            val newRobotIndex = updatedMaze.indexOf(robotChar)
-
-            val newRobotRect = mazeCells[newRobotIndex]
+            val newRobotRect = mazeCells[index]
 
             val fromX = currentRobotPos.first
             val fromY = currentRobotPos.second
@@ -230,7 +228,6 @@ class MazePaintView @JvmOverloads constructor(
 
         if (::moveAnimator.isInitialized) moveAnimator.cancel()
 
-        val robotIndex = maze.indexOf(robotChar)
         currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
 
         robotAnimator.cancel()
@@ -241,8 +238,6 @@ class MazePaintView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         if (maze.isEmpty()) return
-
-        var robotTile: Tile.RobotTile? = null
 
         maze.map {
             decoder[it]
@@ -255,16 +250,6 @@ class MazePaintView @JvmOverloads constructor(
                     canvas.drawBorderedRect(
                         currentRect,
                         fillPaint.apply { color = tile.color },
-                        borderPaint
-                    )
-                }
-
-                is Tile.RobotTile -> {
-                    robotTile = tile
-
-                    canvas.drawBorderedRect(
-                        currentRect,
-                        fillPaint.apply { color = tile.backgroundColor },
                         borderPaint
                     )
                 }
@@ -290,25 +275,23 @@ class MazePaintView @JvmOverloads constructor(
         }
 
         // Draw robot last, so that robot is on top of all the tiles
-        robotTile?.let {
-            canvas.drawCircle(
-                currentRobotPos.first.toFloat(),
-                currentRobotPos.second.toFloat(),
-                robotRadius,
-                fillPaint.apply { color = it.robotColor }
-            )
+        canvas.drawCircle(
+            currentRobotPos.first.toFloat(),
+            currentRobotPos.second.toFloat(),
+            robotRadius,
+            fillPaint.apply { color = robotColor }
+        )
 
-            canvas.drawCircle(
-                currentRobotPos.first.toFloat(),
-                currentRobotPos.second.toFloat(),
-                currentRobotRadius,
-                robotAnimationPaint.apply {
-                    val currentAlpha = alpha
-                    color = it.robotColor
-                    alpha = currentAlpha
-                }
-            )
-        }
+        canvas.drawCircle(
+            currentRobotPos.first.toFloat(),
+            currentRobotPos.second.toFloat(),
+            currentRobotRadius,
+            robotAnimationPaint.apply {
+                val currentAlpha = alpha
+                color = robotColor
+                alpha = currentAlpha
+            }
+        )
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -340,6 +323,7 @@ class MazePaintView @JvmOverloads constructor(
 
             // Save maze
             putString(MAZE_KEY, maze)
+            putInt(ROBOT_INDEX_KEY, robotIndex)
         }
     }
 
@@ -347,6 +331,7 @@ class MazePaintView @JvmOverloads constructor(
     override fun onRestoreInstanceState(state: Parcelable?) {
         (state as Bundle?)?.run {
             maze = getString(MAZE_KEY)!!
+            robotIndex = getInt(ROBOT_INDEX_KEY)
 
             super.onRestoreInstanceState(getParcelable(PARENT_STATE_KEY))
         }
@@ -364,5 +349,6 @@ class MazePaintView @JvmOverloads constructor(
 
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
         const val MAZE_KEY = "MAZE_KEY"
+        const val ROBOT_INDEX_KEY = "ROBOT_INDEX_KEY"
     }
 }

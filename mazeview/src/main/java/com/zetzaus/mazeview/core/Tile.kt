@@ -19,15 +19,6 @@ sealed class Tile {
      */
     data class SolidTile(val color: Int) : Tile()
 
-    /** Represents the current robot position. */
-    /**
-     * Represents the current robot position.
-     *
-     * @property robotColor The robot indicator color.
-     * @property backgroundColor The tile color.
-     */
-    data class RobotTile(val robotColor: Int, val backgroundColor: Int) : Tile()
-
     /**
      * Represents the tile with an image on top.
      *

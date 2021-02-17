@@ -7,4 +7,5 @@
     android:layout_height="match_parent"
     app:cellBorderColor="?attr/colorSurface"
     app:columnCount="5"
+    app:robotColor="?attr/colorSecondary"
     app:rowCount="5" />

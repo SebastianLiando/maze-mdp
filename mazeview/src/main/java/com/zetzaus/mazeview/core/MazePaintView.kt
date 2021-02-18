@@ -39,9 +39,12 @@ class MazePaintView @JvmOverloads constructor(
     /** Top and bottom padding of the whole maze. */
     private var paddingVertical = 0
 
+    /** The amount of cells occupied to the robot indicator's diameter. */
+    private var robotDiameterCellSize = DEFAULT_DIAMETER_SIZE
+
     /** The radius of the robot indicator (which is a circle). */
     private val robotRadius
-        get() = (cellSize / 2) * scaleFactor
+        get() = (cellSize * robotDiameterCellSize / 2) * scaleFactor
 
     /** Used for the robot animation. It is the current radius of the animated circle. */
     private var currentRobotRadius = 0f
@@ -109,6 +112,9 @@ class MazePaintView @JvmOverloads constructor(
             maze = getString(R.styleable.MazePaintView_encodedMaze) ?: ""
 
             robotColor = getColor(R.styleable.MazePaintView_robotColor, Color.BLACK)
+            
+            robotDiameterCellSize =
+                getInteger(R.styleable.MazePaintView_robotDiameterCellSize, DEFAULT_DIAMETER_SIZE)
 
             borderPaint.strokeWidth =
                 getFloat(R.styleable.MazePaintView_cellBorderWidth, DEFAULT_BORDER_WIDTH)
@@ -346,6 +352,8 @@ class MazePaintView @JvmOverloads constructor(
         const val DEFAULT_RING_SIZE_MULTIPLIER = 3f
 
         const val DEFAULT_MOVE_ANIMATION_DURATION = 500
+
+        const val DEFAULT_DIAMETER_SIZE = 1
 
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
         const val MAZE_KEY = "MAZE_KEY"

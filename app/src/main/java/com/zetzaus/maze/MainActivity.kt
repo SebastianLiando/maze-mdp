@@ -13,7 +13,9 @@ class MainActivity : AppCompatActivity() {
     private val colorPrimary
         get() = getThemeColor(R.attr.colorPrimary)
 
-    private val startMaze = "6U6UU" + "UUUUU" + "UUUUU" + "UUUUU" + "UUUUE"
+    private val startMaze = "U".repeat(100)
+        .replaceRange(0..0, "6")
+        .replaceRange(81..81, "E")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +26,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Clicked coordinate ($x, $y)", Toast.LENGTH_LONG)
                     .show()
 
-                val indexTouched = (5 - y - 1) * 5 + x
+                val indexTouched = (ROW - y - 1) * COLUMN + x
 
                 if (maze[indexTouched] != '6') {
                     maze = maze.replaceRange(indexTouched..indexTouched, "E")
@@ -44,5 +46,10 @@ class MainActivity : AppCompatActivity() {
             maze = startMaze
             updateRobotPosition(startMaze.indexOf('E'), false)
         }
+    }
+
+    companion object {
+        const val COLUMN = 10
+        const val ROW = 10
     }
 }

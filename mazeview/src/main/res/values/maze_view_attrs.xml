@@ -16,5 +16,6 @@
         <attr name="cellBorderColor" format="color" />
 
         <attr name="robotColor" format="color" />
+        <attr name="robotDiameterCellSize" format="integer" />
     </declare-styleable>
 </resources>

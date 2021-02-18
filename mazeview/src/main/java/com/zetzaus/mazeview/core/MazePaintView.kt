@@ -112,7 +112,7 @@ class MazePaintView @JvmOverloads constructor(
             maze = getString(R.styleable.MazePaintView_encodedMaze) ?: ""
 
             robotColor = getColor(R.styleable.MazePaintView_robotColor, Color.BLACK)
-            
+
             robotDiameterCellSize =
                 getInteger(R.styleable.MazePaintView_robotDiameterCellSize, DEFAULT_DIAMETER_SIZE)
 
@@ -171,16 +171,13 @@ class MazePaintView @JvmOverloads constructor(
         if (!::mazeCells.isInitialized) return
 
         if (!animated) {
-            currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
+            currentRobotPos = getRobotIndicatorCenterPoint(mazeCells, index)
             invalidate()
         } else {
-            val newRobotRect = mazeCells[index]
-
             val fromX = currentRobotPos.first
             val fromY = currentRobotPos.second
 
-            val toX = newRobotRect.centerX()
-            val toY = newRobotRect.centerY()
+            val (toX, toY) = getRobotIndicatorCenterPoint(mazeCells, index)
 
             if (::moveAnimator.isInitialized) {
                 moveAnimator.cancel()
@@ -234,10 +231,32 @@ class MazePaintView @JvmOverloads constructor(
 
         if (::moveAnimator.isInitialized) moveAnimator.cancel()
 
-        currentRobotPos = mazeCells[robotIndex].centerX() to mazeCells[robotIndex].centerY()
+        currentRobotPos = getRobotIndicatorCenterPoint(mazeCells, robotIndex)
 
         robotAnimator.cancel()
         robotAnimator.start()
+    }
+
+    /**
+     * Returns the center coordinate (x, y) of the robot indicator.
+     *
+     * @param cells The maze cells.
+     * @param indexCenter The center index of the robot. For even-sized robot, the center index is
+     * the lowest and leftmost cell.
+     *
+     * @return The center coordinate (x, y).
+     */
+    private fun getRobotIndicatorCenterPoint(cells: List<Rect>, indexCenter: Int): Pair<Int, Int> {
+        return if (robotDiameterCellSize % 2 == 0) {
+            val robotRadiusCellSize = robotDiameterCellSize / 2
+            val centerCell = cells[indexCenter]
+            val centerY = centerCell.bottom - (cellSize * robotRadiusCellSize)
+            val centerX = centerCell.left + (cellSize * robotRadiusCellSize)
+
+            centerX to centerY
+        } else {
+            cells[indexCenter].centerX() to cells[indexCenter].centerY()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

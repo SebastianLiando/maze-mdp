@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import com.zetzaus.mazeview.R
@@ -88,7 +89,8 @@ class MazePaintView @JvmOverloads constructor(
     private lateinit var currentRobotPos: Pair<Int, Int>
 
     /** The robot's orientation. */
-    private var robotOrientation = Orientation.FRONT
+    var robotOrientation = Orientation.FRONT
+        private set
 
     /** The current rotation of the orientation indicator (used for animation).*/
     private var currentIndicatorRotation = 0f
@@ -106,6 +108,7 @@ class MazePaintView @JvmOverloads constructor(
     private var rowCount = 1
     private var columnCount = 1
     private var scaleFactor = DEFAULT_SCALE_FACTOR
+    private var indicatorScaleFactor = DEFAULT_SCALE_FACTOR
     private var moveAnimationDuration = DEFAULT_MOVE_ANIMATION_DURATION
     private var robotColor = Color.BLACK
 
@@ -124,6 +127,8 @@ class MazePaintView @JvmOverloads constructor(
             rowCount = getInteger(R.styleable.MazePaintView_rowCount, 1)
             columnCount = getInteger(R.styleable.MazePaintView_columnCount, 1)
             scaleFactor = getFloat(R.styleable.MazePaintView_entityScale, DEFAULT_SCALE_FACTOR)
+            indicatorScaleFactor =
+                getFloat(R.styleable.MazePaintView_indicatorScale, DEFAULT_SCALE_FACTOR)
             maze = getString(R.styleable.MazePaintView_encodedMaze) ?: ""
 
             robotColor = getColor(R.styleable.MazePaintView_robotColor, Color.BLACK)
@@ -228,19 +233,35 @@ class MazePaintView @JvmOverloads constructor(
      */
     @JvmOverloads
     fun updateRobotOrientation(orientation: Orientation, animated: Boolean = true) {
+        val prevOrientation = robotOrientation
         robotOrientation = orientation
-        val targetRotation = orientation.degree.toFloat()
+        var targetRotation = orientation.degree.toFloat()
 
         if (!animated) {
             currentIndicatorRotation = targetRotation
             invalidate()
         } else {
+            if (prevOrientation == Orientation.LEFT && targetRotation == 0f) {
+                targetRotation = 360f
+            }
+
+            if (currentIndicatorRotation == 0f && orientation == Orientation.LEFT) {
+                currentIndicatorRotation = 360f
+            }
+
+            if (::orientationAnimator.isInitialized) orientationAnimator.cancel()
+
             orientationAnimator =
                 ValueAnimator.ofFloat(currentIndicatorRotation, targetRotation).apply {
                     duration = moveAnimationDuration.toLong()
+
                     addUpdateListener {
                         currentIndicatorRotation = it.animatedValue as Float
                         invalidate()
+                    }
+
+                    doOnEnd {
+                        currentIndicatorRotation = orientation.degree.toFloat()
                     }
                 }
 
@@ -375,7 +396,7 @@ class MazePaintView @JvmOverloads constructor(
         canvas.drawBitmapWithRotation(
             context.getBitmap(
                 orientationIndicatorImageId,
-                (bitmapSize * scaleFactor * scaleFactor).toInt()
+                (robotRadius * 2 * indicatorScaleFactor).toInt()
             ),
             currentRobotX,
             currentRobotY,

@@ -2,15 +2,17 @@ package com.zetzaus.maze
 
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.zetzaus.mazeview.core.MazePaintView
 import com.zetzaus.mazeview.core.Orientation
 import com.zetzaus.mazeview.core.Tile
 import com.zetzaus.mazeview.extension.getThemeColor
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private val colorPrimary
@@ -49,20 +51,45 @@ class MainActivity : AppCompatActivity() {
             maze = startMaze
             updateRobotPosition(startMaze.indexOf('E'), false)
 
-            rotateRobot(this)
+            this@MainActivity.findViewById<Button>(R.id.buttonLeft).setOnClickListener {
+                updateRobotOrientation(getLeftOrientation(robotOrientation))
+            }
+
+            this@MainActivity.findViewById<Button>(R.id.buttonRight).setOnClickListener {
+                updateRobotOrientation(getRightOrientation(robotOrientation))
+            }
         }
     }
 
-    private fun rotateRobot(mazePaintView: MazePaintView) {
+    private fun getLeftOrientation(current: Orientation) =
+        when (current) {
+            Orientation.FRONT -> Orientation.LEFT
+            Orientation.BACK -> Orientation.RIGHT
+            Orientation.LEFT -> Orientation.BACK
+            Orientation.RIGHT -> Orientation.FRONT
+        }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            mazePaintView.updateRobotOrientation(Orientation.RIGHT)
+    private fun getRightOrientation(current: Orientation) =
+        when (current) {
+            Orientation.FRONT -> Orientation.RIGHT
+            Orientation.BACK -> Orientation.LEFT
+            Orientation.LEFT -> Orientation.FRONT
+            Orientation.RIGHT -> Orientation.BACK
+        }
 
-            Handler(Looper.getMainLooper()).postDelayed({
-                mazePaintView.updateRobotOrientation(Orientation.BACK)
-            }, 1000)
 
-        }, 1000)
+    private fun rotateRobotFullRound(mazePaintView: MazePaintView) = lifecycleScope.launch {
+        listOf(Orientation.RIGHT, Orientation.BACK, Orientation.LEFT, Orientation.FRONT).forEach {
+            mazePaintView.updateRobotOrientation(it)
+            delay(1000)
+        }
+    }
+
+    private fun rotateRobotFullRoundReversed(maze: MazePaintView) = lifecycleScope.launch {
+        listOf(Orientation.LEFT, Orientation.BACK, Orientation.RIGHT, Orientation.FRONT).forEach {
+            maze.updateRobotOrientation(it)
+            delay(1000)
+        }
     }
 
     companion object {

@@ -4,6 +4,7 @@
         <attr name="columnCount" format="integer" />
         <attr name="rowCount" format="integer" />
         <attr name="entityScale" format="float" />
+        <attr name="indicatorScale" format="float" />
         <attr name="encodedMaze" format="string" />
 
         <attr name="ringWidth" format="float" />

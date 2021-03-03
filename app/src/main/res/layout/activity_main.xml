@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.zetzaus.mazeview.core.MazePaintView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/mazePaintView"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:cellBorderColor="?attr/colorSurface"
-    app:columnCount="10"
-    app:orientationIndicatorDrawable="@drawable/ic_indicator"
-    app:robotColor="?attr/colorSecondary"
-    app:robotDiameterCellSize="1"
-    app:rowCount="10" />
+    android:layout_height="match_parent">
+
+    <com.zetzaus.mazeview.core.MazePaintView
+        android:id="@+id/mazePaintView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:cellBorderColor="?attr/colorSurface"
+        app:columnCount="10"
+        app:indicatorScale="0.5"
+        app:layout_constraintBottom_toTopOf="@id/buttonLeft"
+        app:orientationIndicatorDrawable="@drawable/ic_indicator"
+        app:robotColor="?attr/colorSecondary"
+        app:robotDiameterCellSize="1"
+        app:rowCount="10" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LEFT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/buttonRight"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RIGHT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/buttonLeft" />
+</androidx.constraintlayout.widget.ConstraintLayout>

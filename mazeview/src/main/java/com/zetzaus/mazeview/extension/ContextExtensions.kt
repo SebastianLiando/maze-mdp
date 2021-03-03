@@ -1,6 +1,7 @@
 package com.zetzaus.mazeview.extension
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.DrawableRes
@@ -25,4 +26,16 @@ fun Context.getThemeColor(@AttrRes id: Int): Int {
     attributes.recycle()
 
     return color
+}
+
+/**
+ * Returns the image.
+ *
+ * @param id The drawable resource id.
+ * @param size The size of the image.
+ *
+ * @return The image.
+ */
+fun Context.getBitmap(@DrawableRes id: Int, size: Int): Bitmap {
+    return getDrawableOrThrow(id).toScaledBitmap(size, size)
 }

@@ -25,17 +25,5 @@ sealed class Tile {
      * @property imageId The image id.
      * @property backgroundColor The tile color.
      */
-    data class BitmapTile(@DrawableRes val imageId: Int, val backgroundColor: Int) : Tile() {
-
-        /**
-         * Returns the image.
-         *
-         * @param context The context.
-         * @param size The size of the image.
-         * @return The image.
-         */
-        fun getBitmap(context: Context, size: Int): Bitmap {
-            return context.getDrawableOrThrow(imageId).toScaledBitmap(size, size)
-        }
-    }
+    data class BitmapTile(@DrawableRes val imageId: Int, val backgroundColor: Int) : Tile()
 }

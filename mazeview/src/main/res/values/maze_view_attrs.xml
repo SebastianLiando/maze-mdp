@@ -17,5 +17,6 @@
 
         <attr name="robotColor" format="color" />
         <attr name="robotDiameterCellSize" format="integer" />
+        <attr name="orientationIndicatorDrawable" format="reference" />
     </declare-styleable>
 </resources>

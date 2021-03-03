@@ -2,10 +2,13 @@ package com.zetzaus.maze
 
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.zetzaus.mazeview.core.MazePaintView
+import com.zetzaus.mazeview.core.Orientation
 import com.zetzaus.mazeview.core.Tile
 import com.zetzaus.mazeview.extension.getThemeColor
 
@@ -45,7 +48,21 @@ class MainActivity : AppCompatActivity() {
 
             maze = startMaze
             updateRobotPosition(startMaze.indexOf('E'), false)
+
+            rotateRobot(this)
         }
+    }
+
+    private fun rotateRobot(mazePaintView: MazePaintView) {
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            mazePaintView.updateRobotOrientation(Orientation.RIGHT)
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                mazePaintView.updateRobotOrientation(Orientation.BACK)
+            }, 1000)
+
+        }, 1000)
     }
 
     companion object {

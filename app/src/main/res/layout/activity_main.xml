@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     app:cellBorderColor="?attr/colorSurface"
     app:columnCount="10"
+    app:orientationIndicatorDrawable="@drawable/ic_indicator"
     app:robotColor="?attr/colorSecondary"
-    app:robotDiameterCellSize="3"
+    app:robotDiameterCellSize="1"
     app:rowCount="10" />

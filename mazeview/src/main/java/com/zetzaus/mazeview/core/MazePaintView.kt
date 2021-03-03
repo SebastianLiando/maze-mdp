@@ -17,7 +17,9 @@ import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import com.zetzaus.mazeview.R
+import com.zetzaus.mazeview.extension.drawBitmapWithRotation
 import com.zetzaus.mazeview.extension.drawBorderedRect
+import com.zetzaus.mazeview.extension.getBitmap
 import kotlin.math.min
 
 class MazePaintView @JvmOverloads constructor(
@@ -55,6 +57,9 @@ class MazePaintView @JvmOverloads constructor(
     /** Animator for moving robot position from one cell to another. */
     private lateinit var moveAnimator: ValueAnimator
 
+    /** Animator for rotating the robot's orientation indicator. */
+    private lateinit var orientationAnimator: ValueAnimator
+
     /** Paint for drawing a cell. */
     private val fillPaint = Paint().apply {
         style = Paint.Style.FILL
@@ -76,10 +81,20 @@ class MazePaintView @JvmOverloads constructor(
     /** The maze cells positions. */
     private lateinit var mazeCells: List<Rect>
 
+    /** The robot center point index. */
     private var robotIndex = 0
 
     /** The current robot position. It is extracted to class property for animation purpose. */
     private lateinit var currentRobotPos: Pair<Int, Int>
+
+    /** The robot's orientation. */
+    private var robotOrientation = Orientation.FRONT
+
+    /** The current rotation of the orientation indicator (used for animation).*/
+    private var currentIndicatorRotation = 0f
+
+    /** The image id for orientation indicator. */
+    private var orientationIndicatorImageId = DEFAULT_ORIENTATION_INDICATOR
 
     /** Callback for click event. The parameters are the coordinate of the grid that is clicked (X, Y). */
     var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
@@ -128,6 +143,11 @@ class MazePaintView @JvmOverloads constructor(
             robotAnimationPaint.strokeWidth =
                 getFloat(R.styleable.MazePaintView_ringWidth, DEFAULT_RING_WIDTH)
 
+            orientationIndicatorImageId = getResourceId(
+                R.styleable.MazePaintView_orientationIndicatorDrawable,
+                DEFAULT_ORIENTATION_INDICATOR
+            )
+
             moveAnimationDuration = getInteger(
                 R.styleable.MazePaintView_moveAnimationDurationMs,
                 DEFAULT_MOVE_ANIMATION_DURATION
@@ -165,6 +185,7 @@ class MazePaintView @JvmOverloads constructor(
      * @param index The index of the String the robot is at.
      * @param animated `true` to animate the position change.
      */
+    @JvmOverloads
     fun updateRobotPosition(index: Int, animated: Boolean = true) {
         robotIndex = index
 
@@ -199,6 +220,34 @@ class MazePaintView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Updates the orientation indicator image rotation.
+     *
+     * @param orientation The orientation of the robot.
+     * @param animated `true` to animate the rotation.
+     */
+    @JvmOverloads
+    fun updateRobotOrientation(orientation: Orientation, animated: Boolean = true) {
+        robotOrientation = orientation
+        val targetRotation = orientation.degree.toFloat()
+
+        if (!animated) {
+            currentIndicatorRotation = targetRotation
+            invalidate()
+        } else {
+            orientationAnimator =
+                ValueAnimator.ofFloat(currentIndicatorRotation, targetRotation).apply {
+                    duration = moveAnimationDuration.toLong()
+                    addUpdateListener {
+                        currentIndicatorRotation = it.animatedValue as Float
+                        invalidate()
+                    }
+                }
+
+            orientationAnimator.start()
+        }
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
 
@@ -230,6 +279,7 @@ class MazePaintView @JvmOverloads constructor(
         mazeCells = mutableRectangles
 
         if (::moveAnimator.isInitialized) moveAnimator.cancel()
+        if (::orientationAnimator.isInitialized) orientationAnimator.cancel()
 
         currentRobotPos = getRobotIndicatorCenterPoint(mazeCells, robotIndex)
 
@@ -290,7 +340,7 @@ class MazePaintView @JvmOverloads constructor(
                     )
 
                     canvas.drawBitmap(
-                        tile.getBitmap(context, bitmapSize),
+                        context.getBitmap(tile.imageId, bitmapSize),
                         rectPadStart.toFloat(),
                         rectPadTop.toFloat(),
                         null
@@ -300,22 +350,37 @@ class MazePaintView @JvmOverloads constructor(
         }
 
         // Draw robot last, so that robot is on top of all the tiles
+        val currentRobotX = currentRobotPos.first.toFloat()
+        val currentRobotY = currentRobotPos.second.toFloat()
+
         canvas.drawCircle(
-            currentRobotPos.first.toFloat(),
-            currentRobotPos.second.toFloat(),
+            currentRobotX,
+            currentRobotY,
             robotRadius,
             fillPaint.apply { color = robotColor }
         )
 
         canvas.drawCircle(
-            currentRobotPos.first.toFloat(),
-            currentRobotPos.second.toFloat(),
+            currentRobotX,
+            currentRobotY,
             currentRobotRadius,
             robotAnimationPaint.apply {
                 val currentAlpha = alpha
                 color = robotColor
                 alpha = currentAlpha
             }
+        )
+
+        // Draw robot orientation
+        canvas.drawBitmapWithRotation(
+            context.getBitmap(
+                orientationIndicatorImageId,
+                (bitmapSize * scaleFactor * scaleFactor).toInt()
+            ),
+            currentRobotX,
+            currentRobotY,
+            currentIndicatorRotation,
+            fillPaint
         )
     }
 
@@ -373,6 +438,8 @@ class MazePaintView @JvmOverloads constructor(
         const val DEFAULT_MOVE_ANIMATION_DURATION = 500
 
         const val DEFAULT_DIAMETER_SIZE = 1
+
+        val DEFAULT_ORIENTATION_INDICATOR = R.drawable.ic_default_orientation_pointer
 
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
         const val MAZE_KEY = "MAZE_KEY"

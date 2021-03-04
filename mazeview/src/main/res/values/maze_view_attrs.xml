@@ -5,7 +5,6 @@
         <attr name="rowCount" format="integer" />
         <attr name="entityScale" format="float" />
         <attr name="indicatorScale" format="float" />
-        <attr name="encodedMaze" format="string" />
 
         <attr name="ringWidth" format="float" />
         <attr name="ringAnimationDurationMs" format="integer" />
@@ -19,5 +18,9 @@
         <attr name="robotColor" format="color" />
         <attr name="robotDiameterCellSize" format="integer" />
         <attr name="orientationIndicatorDrawable" format="reference" />
+
+        <attr name="coordinatesEnabled" format="boolean" />
+        <attr name="coordinateTextColor" format="color" />
+        <attr name="coordinateTextScaleFactor" format="float" />
     </declare-styleable>
 </resources>

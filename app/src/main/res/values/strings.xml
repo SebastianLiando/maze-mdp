@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Maze</string>
+    <string name="button_left">Turn Left</string>
+    <string name="button_right">Turn Right</string>
 </resources>

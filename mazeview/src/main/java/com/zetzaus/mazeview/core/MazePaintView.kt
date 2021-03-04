@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
@@ -14,13 +13,11 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
-import androidx.core.content.withStyledAttributes
 import com.zetzaus.mazeview.R
-import com.zetzaus.mazeview.extension.drawBitmapWithRotation
-import com.zetzaus.mazeview.extension.drawBorderedRect
-import com.zetzaus.mazeview.extension.getBitmap
+import com.zetzaus.mazeview.extension.*
 import kotlin.math.min
 
 class MazePaintView @JvmOverloads constructor(
@@ -29,12 +26,15 @@ class MazePaintView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    /** Maze configuration information. */
+    private val mazeConfig = MazeViewConfig()
+
     /** Width and height of a cell. */
     private var cellSize = 0
 
     /** Width and height of cell with an image. */
     private val bitmapSize
-        get() = (cellSize * scaleFactor).toInt()
+        get() = (cellSize * mazeConfig.entityScaleFactor).toInt()
 
     /** Left and right padding of the whole maze. */
     private var paddingHorizontal = 0
@@ -43,17 +43,18 @@ class MazePaintView @JvmOverloads constructor(
     private var paddingVertical = 0
 
     /** The amount of cells occupied to the robot indicator's diameter. */
-    private var robotDiameterCellSize = DEFAULT_DIAMETER_SIZE
+    private val robotDiameterCellSize
+        get() = mazeConfig.robotDiameterCellSize
 
     /** The radius of the robot indicator (which is a circle). */
     private val robotRadius
-        get() = (cellSize * robotDiameterCellSize / 2) * scaleFactor
+        get() = (cellSize * robotDiameterCellSize / 2) * mazeConfig.entityScaleFactor
 
     /** Used for the robot animation. It is the current radius of the animated circle. */
     private var currentRobotRadius = 0f
 
     /** Animator for animating the robot. */
-    private lateinit var robotAnimator: ValueAnimator
+    private var robotAnimator: ValueAnimator
 
     /** Animator for moving robot position from one cell to another. */
     private lateinit var moveAnimator: ValueAnimator
@@ -63,20 +64,26 @@ class MazePaintView @JvmOverloads constructor(
 
     /** Paint for drawing a cell. */
     private val fillPaint = Paint().apply {
+        isDither = true
+        isAntiAlias = true
         style = Paint.Style.FILL
     }
 
     /** Paint for drawing the cell borders. */
     private val borderPaint = Paint().apply {
         style = Paint.Style.STROKE
-        strokeWidth = DEFAULT_BORDER_WIDTH
+        strokeWidth = mazeConfig.borderWidth
+        isDither = true
+        isAntiAlias = true
         color = ContextCompat.getColor(context, android.R.color.white)
     }
 
     /** Paint for drawing the robot radar-like animation. */
     private val robotAnimationPaint = Paint().apply {
         style = Paint.Style.STROKE
-        strokeWidth = DEFAULT_RING_WIDTH
+        isAntiAlias = true
+        isDither = true
+        strokeWidth = mazeConfig.ringWidth
     }
 
     /** The maze cells positions. */
@@ -105,13 +112,6 @@ class MazePaintView @JvmOverloads constructor(
             field = value
         }
 
-    private var rowCount = 1
-    private var columnCount = 1
-    private var scaleFactor = DEFAULT_SCALE_FACTOR
-    private var indicatorScaleFactor = DEFAULT_SCALE_FACTOR
-    private var moveAnimationDuration = DEFAULT_MOVE_ANIMATION_DURATION
-    private var robotColor = Color.BLACK
-
     /** The encoded maze. Setting a new value to this variable will invalidate the maze. */
     var maze: String = ""
         set(value) {
@@ -122,64 +122,32 @@ class MazePaintView @JvmOverloads constructor(
     /** Decodes a maze character into the tile. Set the decoder first before updating the maze. */
     var decoder: Map<Char, Tile> = mapOf()
 
+    /** Used to retrieve the text boundaries to draw text center. */
+    private val textBounds = Rect()
+
     init {
-        context.withStyledAttributes(attrs, R.styleable.MazePaintView) {
-            rowCount = getInteger(R.styleable.MazePaintView_rowCount, 1)
-            columnCount = getInteger(R.styleable.MazePaintView_columnCount, 1)
-            scaleFactor = getFloat(R.styleable.MazePaintView_entityScale, DEFAULT_SCALE_FACTOR)
-            indicatorScaleFactor =
-                getFloat(R.styleable.MazePaintView_indicatorScale, DEFAULT_SCALE_FACTOR)
-            maze = getString(R.styleable.MazePaintView_encodedMaze) ?: ""
+        mazeConfig.setConfig(context, attrs, R.styleable.MazePaintView)
 
-            robotColor = getColor(R.styleable.MazePaintView_robotColor, Color.BLACK)
+        borderPaint.strokeWidth = mazeConfig.borderWidth
+        borderPaint.color = mazeConfig.borderColor
 
-            robotDiameterCellSize =
-                getInteger(R.styleable.MazePaintView_robotDiameterCellSize, DEFAULT_DIAMETER_SIZE)
+        robotAnimationPaint.strokeWidth = mazeConfig.ringWidth
 
-            borderPaint.strokeWidth =
-                getFloat(R.styleable.MazePaintView_cellBorderWidth, DEFAULT_BORDER_WIDTH)
+        robotAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            interpolator = DecelerateInterpolator()
 
-            borderPaint.color =
-                getColor(
-                    R.styleable.MazePaintView_cellBorderColor,
-                    ContextCompat.getColor(context, android.R.color.white)
-                )
+            duration = mazeConfig.ringAnimationDuration.toLong()
 
-            robotAnimationPaint.strokeWidth =
-                getFloat(R.styleable.MazePaintView_ringWidth, DEFAULT_RING_WIDTH)
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.RESTART
 
-            orientationIndicatorImageId = getResourceId(
-                R.styleable.MazePaintView_orientationIndicatorDrawable,
-                DEFAULT_ORIENTATION_INDICATOR
-            )
+            addUpdateListener {
+                currentRobotRadius =
+                    it.animatedFraction * robotRadius * mazeConfig.ringSizeMultiplier
 
-            moveAnimationDuration = getInteger(
-                R.styleable.MazePaintView_moveAnimationDurationMs,
-                DEFAULT_MOVE_ANIMATION_DURATION
-            )
+                robotAnimationPaint.alpha = (255 * (1 - it.animatedFraction)).toInt()
 
-            robotAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-                interpolator = DecelerateInterpolator()
-
-                duration = this@withStyledAttributes.getInteger(
-                    R.styleable.MazePaintView_ringAnimationDurationMs,
-                    DEFAULT_RING_ANIMATION_DURATION
-                ).toLong()
-
-                repeatCount = ValueAnimator.INFINITE
-                repeatMode = ValueAnimator.RESTART
-
-                val sizeMultiplier = this@withStyledAttributes.getFloat(
-                    R.styleable.MazePaintView_ringSizeMultiplier,
-                    DEFAULT_RING_SIZE_MULTIPLIER
-                )
-
-                addUpdateListener {
-                    currentRobotRadius = it.animatedFraction * robotRadius * sizeMultiplier
-                    robotAnimationPaint.alpha = (255 * (1 - it.animatedFraction)).toInt()
-
-                    invalidate()
-                }
+                invalidate()
             }
         }
     }
@@ -210,7 +178,7 @@ class MazePaintView @JvmOverloads constructor(
             }
 
             moveAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = moveAnimationDuration.toLong()
+                duration = mazeConfig.moveAnimationDuration.toLong()
                 addUpdateListener {
                     val nextX = fromX + it.animatedFraction * (toX - fromX)
                     val nextY = fromY + it.animatedFraction * (toY - fromY)
@@ -253,7 +221,7 @@ class MazePaintView @JvmOverloads constructor(
 
             orientationAnimator =
                 ValueAnimator.ofFloat(currentIndicatorRotation, targetRotation).apply {
-                    duration = moveAnimationDuration.toLong()
+                    duration = mazeConfig.moveAnimationDuration.toLong()
 
                     addUpdateListener {
                         currentIndicatorRotation = it.animatedValue as Float
@@ -261,6 +229,10 @@ class MazePaintView @JvmOverloads constructor(
                     }
 
                     doOnEnd {
+                        currentIndicatorRotation = orientation.degree.toFloat()
+                    }
+
+                    doOnCancel {
                         currentIndicatorRotation = orientation.degree.toFloat()
                     }
                 }
@@ -272,15 +244,19 @@ class MazePaintView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
 
-        val maxColSize = w / columnCount
-        val maxRowSize = h / rowCount
+        val rowCount = mazeConfig.rowCount
+        val columnCount = mazeConfig.columnCount
+        val isCoordinatesEnabled = mazeConfig.isCoordinateEnabled
+
+        val maxColSize = w / (columnCount + if (isCoordinatesEnabled) 2 else 0)
+        val maxRowSize = h / (rowCount + if (isCoordinatesEnabled) 2 else 0)
         cellSize = min(maxColSize, maxRowSize)
         Log.d("MazePaintView", "Square size is $cellSize")
 
-        paddingVertical = (h - cellSize * rowCount) / 2
+        paddingVertical = ((h - cellSize * rowCount) / 2)
         Log.d("MazePaintView", "Padding vertical is $paddingVertical")
 
-        paddingHorizontal = (w - cellSize * columnCount) / 2
+        paddingHorizontal = ((w - cellSize * columnCount) / 2)
         Log.d("MazePaintView", "Padding horizontal is $paddingHorizontal")
 
         val mutableRectangles = mutableListOf<Rect>()
@@ -373,6 +349,7 @@ class MazePaintView @JvmOverloads constructor(
         // Draw robot last, so that robot is on top of all the tiles
         val currentRobotX = currentRobotPos.first.toFloat()
         val currentRobotY = currentRobotPos.second.toFloat()
+        val robotColor = mazeConfig.robotColor
 
         canvas.drawCircle(
             currentRobotX,
@@ -396,14 +373,49 @@ class MazePaintView @JvmOverloads constructor(
         canvas.drawBitmapWithRotation(
             context.getBitmap(
                 orientationIndicatorImageId,
-                (robotRadius * 2 * indicatorScaleFactor).toInt()
+                (robotRadius * 2 * mazeConfig.indicatorScaleFactor).toInt()
             ),
             currentRobotX,
             currentRobotY,
             currentIndicatorRotation,
             fillPaint
         )
+
+        val textPaint = fillPaint.apply {
+            textSize = mazeConfig.coordinateTextScaleFactor * cellSize
+            color = mazeConfig.coordinateTextColor
+            textAlign = Paint.Align.CENTER
+        }
+
+        // Draw x coordinates
+        if (!mazeConfig.isCoordinateEnabled) return
+
+        var currentX = 0
+        mazeCells.takeLast(mazeConfig.columnCount).forEach { area ->
+            canvas.drawTextCentered(
+                currentX++.toString(),
+                area.centerX().toFloat(),
+                (area.centerY() + cellSize).toFloat(),
+                textPaint,
+                textBounds
+            )
+        }
+
+        // Draw y coordinates
+        var currentY = 0
+        mazeCells.takeEvery(mazeConfig.columnCount)
+            .reversed()
+            .forEach { area ->
+                canvas.drawTextCentered(
+                    currentY++.toString(),
+                    area.centerX().toFloat() - cellSize,
+                    area.centerY().toFloat(),
+                    textPaint,
+                    textBounds
+                )
+            }
     }
+
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -418,7 +430,8 @@ class MazePaintView @JvmOverloads constructor(
             val gridY = (mazeCells.last().bottom - touchY) / cellSize
 
             // Ignore touch that is out of the grid
-            if (gridX < 0 || gridX >= columnCount || gridY < 0 || gridY >= rowCount) return false
+            if (gridX < 0 || gridX >= mazeConfig.columnCount || gridY < 0 || gridY >= mazeConfig.rowCount)
+                return false
 
             touchUpListener?.invoke(gridX.toInt(), gridY.toInt())
 
@@ -449,17 +462,6 @@ class MazePaintView @JvmOverloads constructor(
     }
 
     companion object {
-        const val DEFAULT_SCALE_FACTOR = 0.7f
-        const val DEFAULT_BORDER_WIDTH = 4f
-        const val DEFAULT_RING_WIDTH = 10f
-
-        const val DEFAULT_RING_ANIMATION_DURATION = 1500
-        const val DEFAULT_RING_SIZE_MULTIPLIER = 3f
-
-        const val DEFAULT_MOVE_ANIMATION_DURATION = 500
-
-        const val DEFAULT_DIAMETER_SIZE = 1
-
         val DEFAULT_ORIENTATION_INDICATOR = R.drawable.ic_default_orientation_pointer
 
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"

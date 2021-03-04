@@ -280,6 +280,7 @@ class MazePaintView @JvmOverloads constructor(
         if (::orientationAnimator.isInitialized) orientationAnimator.cancel()
 
         currentRobotPos = getRobotIndicatorCenterPoint(mazeCells, robotIndex)
+        currentIndicatorRotation = robotOrientation.degree.toFloat()
 
         robotAnimator.cancel()
         robotAnimator.start()
@@ -448,7 +449,10 @@ class MazePaintView @JvmOverloads constructor(
 
             // Save maze
             putString(MAZE_KEY, maze)
+
+            // Save robot
             putInt(ROBOT_INDEX_KEY, robotIndex)
+            putString(ROBOT_ORIENTATION_KEY, robotOrientation.name)
         }
     }
 
@@ -457,6 +461,9 @@ class MazePaintView @JvmOverloads constructor(
         (state as Bundle?)?.run {
             maze = getString(MAZE_KEY)!!
             robotIndex = getInt(ROBOT_INDEX_KEY)
+            robotOrientation = Orientation.valueOf(
+                getString(ROBOT_ORIENTATION_KEY, Orientation.FRONT.name)
+            )
 
             super.onRestoreInstanceState(getParcelable(PARENT_STATE_KEY))
         }
@@ -466,5 +473,6 @@ class MazePaintView @JvmOverloads constructor(
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
         const val MAZE_KEY = "MAZE_KEY"
         const val ROBOT_INDEX_KEY = "ROBOT_INDEX_KEY"
+        const val ROBOT_ORIENTATION_KEY = "ROBOT_ORIENTATION_KEY"
     }
 }

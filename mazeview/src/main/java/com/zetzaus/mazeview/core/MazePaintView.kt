@@ -103,7 +103,8 @@ class MazePaintView @JvmOverloads constructor(
     private var currentIndicatorRotation = 0f
 
     /** The image id for orientation indicator. */
-    private var orientationIndicatorImageId = DEFAULT_ORIENTATION_INDICATOR
+    private val orientationIndicatorImageId
+        get() = mazeConfig.orientationIndicatorImageId
 
     /** Callback for click event. The parameters are the coordinate of the grid that is clicked (X, Y). */
     var touchUpListener: ((x: Int, y: Int) -> Unit)? = null
@@ -462,8 +463,6 @@ class MazePaintView @JvmOverloads constructor(
     }
 
     companion object {
-        val DEFAULT_ORIENTATION_INDICATOR = R.drawable.ic_default_orientation_pointer
-
         const val PARENT_STATE_KEY = "PARENT_STATE_KEY"
         const val MAZE_KEY = "MAZE_KEY"
         const val ROBOT_INDEX_KEY = "ROBOT_INDEX_KEY"

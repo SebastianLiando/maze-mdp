@@ -1,3 +1,4 @@
 include ':mazeview'
 include ':app'
 rootProject.name = "Maze"
+include ':app-java'

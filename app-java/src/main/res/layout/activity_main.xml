@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.zetzaus.mazeview.core.MazePaintView
+        android:id="@+id/mazePaintView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:cellBorderColor="?attr/colorSurface"
+        app:columnCount="10"
+        app:coordinateTextColor="?attr/colorOnSurface"
+        app:coordinateTextScaleFactor="0.3"
+        app:coordinatesEnabled="true"
+        app:indicatorScale="0.5"
+        app:layout_constraintBottom_toTopOf="@id/buttonLeft"
+        app:orientationIndicatorDrawable="@drawable/ic_indicator"
+        app:robotColor="?attr/colorSecondary"
+        app:robotDiameterCellSize="1"
+        app:rowCount="10" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_left"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/buttonRight"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_right"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/buttonLeft" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

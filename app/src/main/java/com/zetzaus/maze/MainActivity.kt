@@ -6,13 +6,10 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.zetzaus.mazeview.core.MazePaintView
 import com.zetzaus.mazeview.core.Orientation
 import com.zetzaus.mazeview.core.Tile
 import com.zetzaus.mazeview.extension.getThemeColor
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private val colorPrimary
@@ -27,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<MazePaintView>(R.id.mazePaintView).apply {
+            // Set a listener when a cell in the maze is clicked
             touchUpListener = { x, y ->
                 Toast.makeText(this@MainActivity, "Clicked coordinate ($x, $y)", Toast.LENGTH_LONG)
                     .show()
@@ -39,6 +37,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // Set the decoder to translate the maze string into the tile
             decoder = mapOf(
                 'U' to Tile.SolidTile(colorPrimary),
                 'E' to Tile.SolidTile(Color.YELLOW),
@@ -48,9 +47,11 @@ class MainActivity : AppCompatActivity() {
                 )
             )
 
+            // Set initial maze state
             maze = startMaze
             updateRobotPosition(startMaze.indexOf('E'), false)
 
+            // Set button listeners
             this@MainActivity.findViewById<Button>(R.id.buttonLeft).setOnClickListener {
                 updateRobotOrientation(getLeftOrientation(robotOrientation))
             }
@@ -76,21 +77,6 @@ class MainActivity : AppCompatActivity() {
             Orientation.LEFT -> Orientation.FRONT
             Orientation.RIGHT -> Orientation.BACK
         }
-
-
-    private fun rotateRobotFullRound(mazePaintView: MazePaintView) = lifecycleScope.launch {
-        listOf(Orientation.RIGHT, Orientation.BACK, Orientation.LEFT, Orientation.FRONT).forEach {
-            mazePaintView.updateRobotOrientation(it)
-            delay(1000)
-        }
-    }
-
-    private fun rotateRobotFullRoundReversed(maze: MazePaintView) = lifecycleScope.launch {
-        listOf(Orientation.LEFT, Orientation.BACK, Orientation.RIGHT, Orientation.FRONT).forEach {
-            maze.updateRobotOrientation(it)
-            delay(1000)
-        }
-    }
 
     companion object {
         const val COLUMN = 10

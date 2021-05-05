@@ -1,6 +1,8 @@
 # Maze View
 This Android library adds the custom view `MazePaintView`. It is a 2D grid with an entity as shown below.
 
+![Maze View Demo](https://drive.google.com/uc?export=view&id=1m4x7hDFtjJCFfS25eyd2rP6qxNYKnRnl)
+
 ## Installation
 Add the following as a gradle dependencies.
 ```

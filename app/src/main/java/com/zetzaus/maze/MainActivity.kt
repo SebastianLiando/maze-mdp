@@ -77,21 +77,6 @@ class MainActivity : AppCompatActivity() {
             Orientation.RIGHT -> Orientation.BACK
         }
 
-
-    private fun rotateRobotFullRound(mazePaintView: MazePaintView) = lifecycleScope.launch {
-        listOf(Orientation.RIGHT, Orientation.BACK, Orientation.LEFT, Orientation.FRONT).forEach {
-            mazePaintView.updateRobotOrientation(it)
-            delay(1000)
-        }
-    }
-
-    private fun rotateRobotFullRoundReversed(maze: MazePaintView) = lifecycleScope.launch {
-        listOf(Orientation.LEFT, Orientation.BACK, Orientation.RIGHT, Orientation.FRONT).forEach {
-            maze.updateRobotOrientation(it)
-            delay(1000)
-        }
-    }
-
     companion object {
         const val COLUMN = 10
         const val ROW = 10

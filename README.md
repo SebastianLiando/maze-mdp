@@ -3,11 +3,15 @@ This Android library adds the custom view `MazePaintView`. It is a 2D grid with 
 
 ## Installation
 Add the following as a gradle dependencies.
-```implementation 'com.github.SebastianLiando:maze-mdp:1.3.2'```
+```
+implementation 'com.github.SebastianLiando:maze-mdp:1.3.2'
+```
 
 If your project is Java based, ensure that Kotlin is configured for the project. 
 First, add the Kotlin as dependency on the **project-level** gradle file.
-```classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"```
+```
+classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+```
 
 Next, add these 2 dependencies to the **app-level** gradle file.
 ```

@@ -3,6 +3,8 @@ This Android library adds the custom view `MazePaintView`. It is a 2D grid with 
 
 ![Maze View Demo](https://drive.google.com/uc?export=view&id=1m4x7hDFtjJCFfS25eyd2rP6qxNYKnRnl)
 
+Click [here](https://blogs.ntu.edu.sg/scemdp-2021s2-g06/2021/03/26/android-technical-report/) to see this package in a real project.
+
 ## Installation
 Add Jitpack repository.
 ```

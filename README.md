@@ -7,7 +7,7 @@ Click [here](https://blogs.ntu.edu.sg/scemdp-2021s2-g06/2021/03/26/android-techn
 
 ## Installation
 Add Jitpack repository.
-```
+```gradle
 allprojects {
     repositories {
         ...
@@ -16,24 +16,24 @@ allprojects {
 }
 ```
 Add the following as a gradle dependencies.
-```
+```gradle
 implementation 'com.github.SebastianLiando:maze-mdp:1.3.2'
 ```
 
 If your project is Java based, ensure that Kotlin is configured for the project. 
 First, add the Kotlin as dependency on the **project-level** gradle file.
-```
+```gradle
 classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 ```
 
 Next, add these 2 dependencies to the **app-level** gradle file.
-```
+```gradle
 implementation "androidx.core:core-ktx:1.3.2"
 implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 ```
 
 Also add the Kotlin plugins
-```
+```gradle
 plugins {
     ...
 
@@ -51,7 +51,7 @@ Add the `MazePaintView` to your XML layout.
 The most important attributes will be the `columnCount`, `rowCount`, and `robotDiameterCellSize`.
 For more information of the attributes, please see the wiki section of this project.
 
-```
+```xml
 <com.zetzaus.mazeview.core.MazePaintView
         android:id="@+id/mazePaintView"
         android:layout_width="match_parent"
@@ -80,12 +80,12 @@ maze string decoder will map the character to the maze cell.
 To set or update the maze string, set the `maze` property.
 
 Kotlin code:
-```
+```kotlin
 mazeView.maze = "000001111100000"
 ```
 
 Java code:
-```
+```java
 mazeView.setMaze("000001111100000");
 ```
 
@@ -97,7 +97,7 @@ The decoder is a `Map` that matches a `char` to a `Tile` subclasses. There are 2
 The decoder only needs to be set once. To set the decoder, set the `decoder` property.
 
 Kotlin code:
-```
+```kotlin
 mazeView.decoder = mapOf(
                        'U' to Tile.SolidTile(colorPrimary),
                        'E' to Tile.SolidTile(Color.YELLOW),
@@ -109,7 +109,7 @@ mazeView.decoder = mapOf(
 ```
 
 Java code:
-```
+```java
 final Map<Character, Tile> decoder = new HashMap<>();
 decoder.put('U', new Tile.SolidTile(getPrimaryColor(this)));
 decoder.put('E', new Tile.SolidTile(Color.YELLOW));
@@ -129,12 +129,12 @@ To set or update the entity center position, call the `updateRobotPosition` meth
 whether the position update should be animated or not.
 
 Kotlin code:
-```
+```kotlin
 mazeView.updateRobotPosition(0, false);
 ```
 
 Java code:
-```
+```java
 mazeView.updateRobotPosition(0, false);
 ```
 
@@ -145,7 +145,7 @@ the coordinate (0, 0) is at the bottom left side.
 To add the listener, set the `touchUpListener` property.
 
 Kotlin code:
-```
+```kotlin
 touchUpListener = { x, y ->
     Toast.makeText(this@MainActivity, "Clicked coordinate ($x, $y)", Toast.LENGTH_LONG)
         .show()
@@ -153,7 +153,7 @@ touchUpListener = { x, y ->
 ```
 
 Java code:
-```
+```java
 mazeView.setTouchUpListener((x, y) -> {
     final String toastMessage = String.format(Locale.getDefault(), "Clicked coordinate (%d, %d)", x, y);
 
